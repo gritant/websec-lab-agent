@@ -1,0 +1,118 @@
+# PortSwigger Web Security Academy 题目注册表（评测用测试集）
+#
+# 使用方法：
+#   1. 登录 https://portswigger.net/web-security（免费注册），进入题目页点击 Launch lab
+#   2. 把得到的实例地址（形如 https://0a2b008f03xxxx.web-security-academy.net）
+#      粘贴到对应题目的 lab_url 字段，或运行时用 --url 临时传入
+#   3. python main.py run --lab <id> --url <实例地址>
+#
+# 注意：实例闲置约 1 小时会过期，过期后重新 Launch 即可（地址会变化）。
+# 全部为单机可解的经典题（无需 Burp Collaborator 外带）。
+
+- id: sqli_union_columns
+  title: SQL injection UNION attack, determining the number of columns
+  title_zh: UNION 注入 —— 确定查询返回的列数
+  category: sqli
+  difficulty: 1
+  portswigger_url: https://portswigger.net/web-security/sql-injection/union-attacks/lab-determine-number-of-columns
+  lab_url: ""
+
+- id: sqli_union_data
+  title: SQL injection UNION attack, retrieving multiple values in a single column
+  title_zh: UNION 注入 —— 单列提取多值
+  category: sqli
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-multiple-values-in-single-column
+  lab_url: ""
+
+- id: sqli_login_bypass
+  title: SQL injection vulnerability allowing login bypass
+  title_zh: SQL 注入 —— 免密登录绕过
+  category: sqli
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/sql-injection/lab-sql-injection-vulnerability-allowing-login-bypass
+  lab_url: ""
+
+- id: xss_reflected
+  title: Reflected XSS into HTML context with nothing encoded
+  title_zh: 反射型 XSS —— 无任何编码
+  category: xss
+  difficulty: 1
+  portswigger_url: https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-nothing-encoded
+  lab_url: ""
+
+- id: xss_stored
+  title: Stored XSS into HTML context with nothing encoded
+  title_zh: 存储型 XSS —— 无任何编码
+  category: xss
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded
+  lab_url: ""
+
+- id: xss_dom_write
+  title: DOM XSS in document.write sink with source location.search
+  title_zh: DOM 型 XSS —— document.write 汇点
+  category: xss
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-document-write-sink
+  lab_url: ""
+
+- id: traversal_simple
+  title: File path traversal, simple case
+  title_zh: 路径穿越 —— 基础版
+  category: path_traversal
+  difficulty: 1
+  portswigger_url: https://portswigger.net/web-security/file-path-traversal/lab-simple
+  lab_url: ""
+
+- id: traversal_absolute
+  title: File path traversal, traversal sequences blocked with absolute path bypass
+  title_zh: 路径穿越 —— 绝对路径绕过
+  category: path_traversal
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass
+  lab_url: ""
+
+- id: ac_unprotected_admin
+  title: Unprotected admin functionality
+  title_zh: 越权 —— 未防护的管理后台
+  category: access_control
+  difficulty: 1
+  portswigger_url: https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality
+  lab_url: ""
+
+- id: ac_role_param
+  title: User role controlled by request parameter
+  title_zh: 越权 —— 由请求参数控制的角色
+  category: access_control
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter
+  lab_url: ""
+
+- id: info_error_messages
+  title: Information disclosure in error messages
+  title_zh: 信息泄露 —— 报错信息
+  category: info_disclosure
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/information-disclosure/lab-info-disclosure-in-error-messages
+  lab_url: ""
+
+- id: info_backup_files
+  title: Source code disclosure via backup files
+  title_zh: 信息泄露 —— 备份文件源码泄露
+  category: info_disclosure
+  difficulty: 2
+  portswigger_url: https://portswigger.net/web-security/information-disclosure/lab-source-code-disclosure-via-backup-files
+  lab_url: ""
+
+# ---- 本地 mock 靶场（不入批量评测，仅用于冒烟演示）----
+# 先启动: python tests/mock_lab.py   再运行:
+#   python main.py run --lab mock_sqli_login --url http://127.0.0.1:5050 --mock-llm
+- id: mock_sqli_login
+  title: Mock SQL injection login bypass (local)
+  title_zh: 本地模拟 —— SQL 注入登录绕过
+  category: sqli
+  difficulty: 1
+  portswigger_url: ""
+  lab_url: ""
+

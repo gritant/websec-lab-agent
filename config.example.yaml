@@ -1,0 +1,26 @@
+# 复制本文件为 config.yaml 后填写（config.yaml 已被 .gitignore 忽略，不会提交）
+
+llm:
+  # 两种后端任选其一，均为 OpenAI 兼容的 /chat/completions 接口：
+  #   OpenAI 官方:  base_url: https://api.openai.com/v1
+  #   智谱 GLM:     base_url: https://open.bigmodel.cn/api/paas/v4
+  #   DeepSeek:     base_url: https://api.deepseek.com/v1
+  #   本地 Ollama:  base_url: http://localhost:11434/v1   （api_key 可留空）
+  backend: openai
+  base_url: https://api.openai.com/v1
+  api_key: ""            # 也可用环境变量 LLM_API_KEY 传入，优先级更高
+  model: gpt-4o-mini
+  temperature: 0.2
+  max_tokens: 1024
+  timeout_sec: 120
+
+agent:
+  max_steps: 25                 # 每个 lab 最多 ReAct 步数
+  max_http_requests: 120        # 每个 lab 最多发出的 HTTP 请求数
+  request_interval_sec: 0.5     # 限速：两次请求的最小间隔（对靶场保持礼貌）
+
+safety:
+  # 白名单：Agent 只能访问这些后缀的域名（你的靶场实例 *.web-security-academy.net 会命中）
+  allowed_host_suffixes:
+    - web-security-academy.net
+    - portswigger-lab.net

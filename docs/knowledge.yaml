@@ -1,0 +1,74 @@
+# 漏洞类别 -> 知识卡片（回放界面中按类别展示）
+# 与 labs/registry.yaml 的 category 字段对应
+
+sqli:
+  name: SQL 注入
+  principle: >-
+    应用把用户输入直接拼进 SQL 语句时，攻击者可以用引号闭合原语句、
+    再用 UNION 拼接自己的查询、或用 -- 注释掉后续条件，
+    从而读写数据库中本不可见的数据，甚至绕过登录。
+  payloads:
+    - "' —— 单引号探测：引发 500/报错说明输入进入了 SQL"
+    - "' ORDER BY 3-- —— 逐步增大数字探测列数，报错即越界"
+    - "' UNION SELECT NULL,NULL,NULL-- —— 配合 ORDER BY 确认列数"
+    - "' UNION SELECT username,password FROM users-- —— 拖库"
+    - "administrator'-- —— 登录框注释密码条件，免密登录"
+  tips:
+    - 先侦察页面找出所有参数注入点（URL 参数、Cookie、POST 体）
+    - 一次只改一个变量，对比状态码/响应长度/报错的差异
+  defense: 参数化查询（预编译），永远不要字符串拼接 SQL；最小权限数据库账号。
+
+xss:
+  name: 跨站脚本 XSS
+  principle: >-
+    用户输入未经编码被写入页面（反射型：回显在响应中；存储型：存入数据库影响所有访客；
+    DOM 型：前端 JS 直接把 location 等来源写入危险汇点），
+    攻击者注入 <script> 即可在受害者浏览器中执行任意代码、窃取会话。
+  payloads:
+    - "<script>alert(1)</script> —— 经典探测"
+    - "><script>alert(1)</script> —— 闭合前一个标签后注入"
+    - '"><svg onload=alert(1)> —— SVG 事件绕过部分过滤'
+  tips:
+    - 反射型先看参数是否原样回显；存储型找评论区/昵称等会渲染输入的位置
+    - DOM 型用 extract_page 的 html_comments/links 线索定位 document.write/innerHTML 汇点
+  defense: 输出按上下文做 HTML 实体编码；配合 CSP；避免把不可信数据直接写入 innerHTML/document.write。
+
+path_traversal:
+  name: 路径穿越
+  principle: >-
+    文件读取功能把用户输入拼进文件路径且未归一化时，
+    用 ../ 序列或绝对路径即可跳出基目录，读取 /etc/passwd 等任意文件。
+  payloads:
+    - "../../../etc/passwd —— 逐级跳出，不够就加层数"
+    - "/etc/passwd —— 若过滤了 ../，直接用绝对路径绕过"
+    - "....//....//etc/passwd —— 针对仅删除一层 ../ 的过滤"
+  tips:
+    - 找图片加载/文件下载类接口（如 ?filename=），观察响应是文件内容还是报错
+  defense: 白名单文件名；用 realpath 归一化后校验前缀；禁止路径分隔符进入参数。
+
+access_control:
+  name: 访问控制缺陷（越权）
+  principle: >-
+    服务端把权限判断交给客户端可控行为（隐藏 URL、Cookie/参数里的角色值、
+    仅前端隐藏按钮），攻击者直接构造请求即可水平/垂直越权访问他人数据或管理功能。
+  payloads:
+    - "/admin —— robots.txt、页面注释里常泄露隐藏路径"
+    - "Cookie: Admin=true —— 角色由 Cookie/参数控制时直接改值提权"
+  tips:
+    - 先以普通用户登录，再尝试不带凭证或改角色值访问管理功能
+    - 检查 extract_page 结果中的 links 与 html_comments，隐藏入口常在那里
+  defense: 默认拒绝（deny by default）；服务端强制校验每个请求的角色与资源归属。
+
+info_disclosure:
+  name: 信息泄露
+  principle: >-
+    应用把敏感信息暴露给不该看到的用户：详细报错（含堆栈/框架版本/SQL）、
+    源码备份文件（.bak/.old/~/）、调试页面、注释中的密钥等，
+    为后续攻击直接提供弹药。
+  payloads:
+    - "GET /product?productId=1' —— 制造报错泄露框架与 SQL 信息"
+    - "探测 /backup.zip、/index.php.bak、/~admin 等常见备份/调试路径"
+  tips:
+    - 报错信息要细读：版本号、绝对路径、表结构都是下一步的钥匙
+    - 404 探测时注意状态码差异（200/403/500 都和 404 有区别）
+  defense: 生产环境关闭详细报错；部署后清理备份与调试端点；敏感信息与响应解耦。
