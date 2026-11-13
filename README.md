@@ -161,6 +161,16 @@ websec-lab-agent/
     └── smoke_test.py     # 端到端冒烟测试
 ```
 
+## 开发测试
+
+安装依赖后，运行离线 CLI 回归测试：
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+测试覆盖评测入口的默认模式、盲测模式、题目筛选、自定义配置路径和无可运行题目时的提示，不调用 LLM API 或远程靶场。完整的本地 mock 冒烟测试仍使用 `python main.py smoke`。
+
 ## Roadmap
 
 - [ ] 跨题记忆：解完一题总结经验，带入下一题（对比解出率提升）

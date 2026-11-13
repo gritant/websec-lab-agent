@@ -126,6 +126,8 @@ def cmd_run(args):
 
 
 def cmd_eval(args):
+    from eval.runner import run_eval
+
     cfg = load_config(args.config)
     run_eval(cfg, mode=args.mode, only=args.lab)
 
