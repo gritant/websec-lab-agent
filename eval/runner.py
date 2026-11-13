@@ -104,7 +104,11 @@ def _write_report(results, mode, runs_dir):
 
     csv_path = os.path.join(runs_dir, f"eval-{mode}-{ts}.csv")
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=list(results[0].keys()))
+        # 异常结果没有 metrics，表头不能依赖第一道题是否正常完成。
+        writer = csv.DictWriter(f, fieldnames=[
+            "lab", "category", "solved", "steps", "http_requests", "llm_calls",
+            "duration_sec", "summary", "transcript",
+        ])
         writer.writeheader()
         writer.writerows(results)
 
