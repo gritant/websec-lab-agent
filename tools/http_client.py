@@ -39,7 +39,10 @@ class SafeHTTP:
         return url
 
     def _check(self, url: str) -> str:
-        host = urlparse(url).hostname or ""
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            raise SafetyViolation("只允许 HTTP(S) 请求，其他协议已拦截")
+        host = parsed.hostname or ""
         if not host:
             raise SafetyViolation(f"无法解析的 URL: {url}")
         ok = any(host == s or host.endswith("." + s) for s in self.allowed_suffixes)
@@ -52,31 +55,43 @@ class SafeHTTP:
     # ---------- 请求 ----------
     def request(self, method, url, headers=None, data=None):
         url = self._check(self._resolve(str(url)))
-        wait = self.interval - (time.time() - self._last_ts)
-        if wait > 0:
-            time.sleep(wait)
-        self._last_ts = time.time()
-        self._count += 1
-
         method = method.upper()
         req = requests.Request(method, url, headers=headers, data=data)
         prepared = self.session.prepare_request(req)
-        raw_request = self._raw_request(prepared, data)
-        try:
-            resp = self.session.send(prepared, timeout=30, allow_redirects=True)
-        except requests.RequestException as exc:
-            entry = {"method": method, "url": url, "status": 0,
-                     "request": raw_request, "response": f"连接失败: {exc}",
-                     "ts": time.time()}
-            self.traffic.append(entry)
-            raise
-        raw_response = self._raw_response(resp)
-        self.traffic.append({
-            "method": method, "url": resp.url, "status": resp.status_code,
-            "request": raw_request, "response": raw_response, "ts": time.time(),
-        })
-        return {"status": resp.status_code, "headers": dict(resp.headers),
-                "body": resp.text}
+        redirects = 0
+        while True:
+            # 检查实际发送的 URL：重定向不能绕过白名单、限速或请求预算。
+            self._check(prepared.url)
+            wait = self.interval - (time.time() - self._last_ts)
+            if wait > 0:
+                time.sleep(wait)
+            self._last_ts = time.time()
+            self._count += 1
+            raw_request = self._raw_request(prepared, prepared.body)
+            try:
+                resp = self.session.send(prepared, timeout=30, allow_redirects=False)
+            except requests.RequestException as exc:
+                self.traffic.append({
+                    "method": prepared.method, "url": prepared.url, "status": 0,
+                    "request": raw_request, "response": f"连接失败: {exc}",
+                    "ts": time.time(),
+                })
+                raise
+            self.traffic.append({
+                "method": prepared.method, "url": resp.url, "status": resp.status_code,
+                "request": raw_request, "response": self._raw_response(resp),
+                "ts": time.time(),
+            })
+            if resp.next is None:
+                return {"status": resp.status_code, "headers": dict(resp.headers),
+                        "body": resp.text}
+            if redirects >= self.session.max_redirects:
+                raise requests.TooManyRedirects(
+                    f"Exceeded {self.session.max_redirects} redirects.", response=resp
+                )
+            redirects += 1
+            # Requests 负责相对 URL、Cookie、方法/请求体以及跨主机凭据处理。
+            prepared = resp.next
 
     # ---------- 原始报文渲染（回放用） ----------
     @staticmethod
